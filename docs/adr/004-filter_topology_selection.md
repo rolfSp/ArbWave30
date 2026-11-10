@@ -7,67 +7,67 @@ To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/
 ------------------------------------------------------------------------->
 
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - Document framework -->
 
-# ADR-004: 滤波器拓扑结构选型
+# ADR-004: Filter Topology Selection
 
-## 状态
-已采纳 （2026-05-09）
+## Status
+Accepted (2026-05-09)
 
-## 背景
-AWG 输出 30MHz 正弦波、5MHz 方波。DAC 为 AD9747（150MSPS），需重构滤波器抑制采样镜像。
+## Context
+The AWG outputs 30MHz sine waves and 5MHz square waves. The DAC is an AD9747 (150MSPS), requiring a reconstruction filter to suppress sampling images.
 
-## 决策驱动因素
-1. 通带插损（尤其 30MHz 处）需 < 0.5dB
-2. 镜像频率（120MHz）抑制需 > 60dB
-3. 方波过冲应尽量小（< 10% 为佳）
-4. 电感需选用市售高 Q 值型号，避免 DCR 过大
+## Decision Drivers
+1. Passband insertion loss (especially at 30MHz) must be < 0.5dB
+2. Suppression at the image frequency (120MHz) must be > 60dB
+3. Square-wave overshoot should be minimized (preferably < 10%)
+4. Inductors must be commercially available high-Q models to avoid excessive DCR
 
-## 备选方案与理由
+## Alternatives and Rationale
 
-**方案 A: 5 阶椭圆，35MHz 截止**
-- ✅ 阻带抑制极佳（>100dB@120MHz）
-- ❌ 所需电感值大（>300nH），Q 值低导致 30MHz 插损达 0.7dB
-- ❌ 电感直流电阻高（>3Ω）
+**Option A: 5th-order elliptic, 35MHz cutoff**
+- ✅ Excellent stopband rejection (>100dB@120MHz)
+- ❌ Large inductance values required (>300nH); low Q results in 0.7dB insertion loss at 30MHz
+- ❌ High inductor DC resistance (>3Ω)
 
 
-**方案 B: 7 阶椭圆，35MHz 截止**
-- ✅ 阻带抑制极佳（>100dB@75MHz）
-- ❌ 所需电感值大（>300nH），Q 值低导致 30MHz 插损达 0.45dB，但实际电感存在误差，可能达不到仿真参数
-- ❌ 电感直流电阻高（>3Ω）
+**Option B: 7th-order elliptic, 35MHz cutoff**
+- ✅ Excellent stopband rejection (>100dB@75MHz)
+- ❌ Large inductance values required (>300nH); low Q results in 0.45dB insertion loss at 30MHz, but actual inductor tolerances may prevent achieving the simulated performance
+- ❌ High inductor DC resistance (>3Ω)
 
-**方案 C: 7 阶椭圆，60MHz 截止（已选）**
-- ✅ 电感值小（~120-180nH），可用高 Q 绕线电感（Q@60MHz>70）
-- ✅ 30MHz 插损仿真<0.5dB（使用 Coilcraft 0805HP 模型）
-- ✅ 120MHz 抑制>90dB（远超 60dB 需求）
-- ⚠️ 方波过冲~13%（可接受，且可通过软件预失真或者调整上升沿速度进行抑制）
-- ✅ 群延时变化相对平缓（因 5MHz 谐波远离截止区）
+**Option C: 7th-order elliptic, 60MHz cutoff (selected)**
+- ✅ Small inductance values (~120-180nH), allowing high-Q wirewound inductors (Q@60MHz>70)
+- ✅ Simulated insertion loss at 30MHz <0.5dB (using Coilcraft 0805HP models)
+- ✅ Rejection at 120MHz >90dB (far exceeding the 60dB requirement)
+- ⚠️ Square-wave overshoot ~13% (acceptable, and reducible through software predistortion or rise-time adjustment)
+- ✅ Relatively smooth group-delay variation (because the 5MHz harmonics are far from the cutoff region)
 
-**方案 D: 7 阶椭圆，60MHz 截止，RC snubber**
-- ✅ 电感值小（~120-180nH），可用高 Q 绕线电感（Q@60MHz>70）
-- ✅ 方波过冲~8%
-- ✅ 120MHz 抑制>90dB（远超 60dB 需求）
-- ❌ 30MHz 插损仿真>1.2dB（RC snubber 过度吸收高频能量，导致通带损耗过大）
-- ❌ 设计复杂度增加，需调整 RC 参数以平衡过冲和插损，且对元件参数敏感
+**Option D: 7th-order elliptic, 60MHz cutoff, RC snubber**
+- ✅ Small inductance values (~120-180nH), allowing high-Q wirewound inductors (Q@60MHz>70)
+- ✅ Square-wave overshoot ~8%
+- ✅ Rejection at 120MHz >90dB (far exceeding the 60dB requirement)
+- ❌ Simulated insertion loss at 30MHz >1.2dB (the RC snubber absorbs too much high-frequency energy, causing excessive passband loss)
+- ❌ Increased design complexity; RC values must be adjusted to balance overshoot and insertion loss, with sensitivity to component parameters
 
-**方案 E: 7 阶切比雪夫 II 型**
-- ✅ 通带平坦，群延时特性更好
-- ⚠️ 同阶数下阻带抑制较椭圆差
-- ⚠️ 对元件参数敏感，实际电感 Q 值和误差可能导致性能大幅下降
-- **决策**: 留作 V2.0 升级选项（可 Pin-to-Pin 替换）
+**Option E: 7th-order Chebyshev Type II**
+- ✅ Flat passband and better group-delay characteristics
+- ⚠️ Lower stopband rejection than an elliptic filter of the same order
+- ⚠️ Sensitive to component parameters; actual inductor Q and tolerances may significantly degrade performance
+- **Decision**: Reserve as a V2.0 upgrade option (pin-to-pin replacement possible)
 
-## 决策
-选择 **7阶椭圆滤波器，截止频率 60MHz**，将方波过冲列为已知问题，后续通过软件预失真、调整上升沿速度或采用单独方波通道进行优化。
+## Decision
+Select a **7th-order elliptic filter with a 60MHz cutoff**. Track square-wave overshoot as a known issue for later optimization through software predistortion, rise-time adjustment, or a separate square-wave channel.
 
-## 理由
-- 在实测可买的电感（如 AHW2012 系列）下，60MHz 处电感 Q 值可达 60+，30MHz 插损实测仿真 <1dB。
-- 90dB@120MHz 抑制远超需求（65dB 已够用）。
-- 方波过冲通过仿真确认约为 13%~18%，可接受（可通过软件预失真或者调整上升沿速度进行抑制）。
-- 相比切比雪夫II，椭圆滤波器对元件参数和 PCB 布局要求相对较低，适合第一版。
+## Rationale
+- With commercially available inductors tested (such as the AHW2012 series), Q at 60MHz can reach 60+, with measured/simulated insertion loss at 30MHz <1dB.
+- Rejection of 90dB@120MHz far exceeds the requirement (65dB is sufficient).
+- Simulation confirms square-wave overshoot of approximately 13%~18%, which is acceptable (and can be reduced through software predistortion or rise-time adjustment).
+- Compared with Chebyshev II, an elliptic filter places relatively lower demands on component parameters and PCB layout, making it suitable for the first version.
 
-## 后果
-- 正面：电感可选型号丰富，通带损耗低，镜像抑制仍优秀。
-- 负面影响：方波存在约 13%~18% 过冲，需要在后续设计中考虑优化方案。
+## Consequences
+- Positive: A wide choice of inductors, low passband loss, and excellent image rejection.
+- Negative: Approximately 13%~18% square-wave overshoot requires optimization in subsequent designs.
 
-## 相关链接
-- [重构滤波器调试笔记]（/docs/设计笔记/重构滤波器调试笔记.md)
+## Related Links
+- [Reconstruction Filter Debugging Notes](/docs/design-notes/reconstruction-filter-debugging.md)

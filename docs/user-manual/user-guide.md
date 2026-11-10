@@ -6,13 +6,13 @@ This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 Inte
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 ------------------------------------------------------------------------->
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - document framework -->
 
-# ArbWave30 用户操作手册
+# ArbWave30 User Guide
 
-| 文档编号 | ArbWave30-UM-001 | 版本 | V0.1 |
+| Document ID | ArbWave30-UM-001 | Version | V0.1 |
 | --- | --- | --- | --- |
-| 项目名称 | ArbWave30 | 日期 | 2026-08-17 |
-| 编写人 | EERNINUO | 状态 | 占位文件 |
+| Project | ArbWave30 | Date | 2026-08-17 |
+| Author | EERNINUO | Status | Placeholder |
 
-> 这里现在是占位文件，待系统验证完成后补充完整。
+> This is currently a placeholder. It will be completed after system validation.

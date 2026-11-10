@@ -6,92 +6,92 @@ This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 Inte
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 ------------------------------------------------------------------------->
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - Document framework -->
 
-# ADR-005: 差分转单端电路拓扑选型
+# ADR-005: Differential-to-Single-Ended Circuit Topology Selection
 
-## 状态
-已弃用 （2026-09-26）
+## Status
+Deprecated (2026-09-26)
 
-## 背景
-经过计算，差分转单端电路原方案下 OPA695 在增益 G = 6 V/V 时，反向输入端阻抗 $Z_{Non} \approx 39.4 \Omega$，无法通过并联电阻实现 50Ω 输入阻抗。因此，需要修改电路拓扑来满足滤波器的输出负载要求。
+## Context
+Calculations for the original differential-to-single-ended circuit show that, with the OPA695 at gain G = 6 V/V, the inverting-input impedance is $Z_{Non} \approx 39.4 \Omega$, so a parallel resistor cannot achieve a 50Ω input impedance. The circuit topology therefore needs to change to meet the filter's output-load requirement.
 
-## 决策驱动因素
-- PCB 修改方便性：模拟板 MVP 已经打样，尽量选择能够在现有 PCB 上进行修改的方案。
-- 成本：总成本尽量低，50 以内为优。
-- 电路性能：增益、稳定性、噪声、带宽、压摆率等要求。
+## Decision Drivers
+- Ease of PCB modification: The analog-board MVP has already been fabricated; prefer a solution that can be implemented on the existing PCB.
+- Cost: Keep total cost as low as possible, preferably below 50.
+- Circuit performance: Requirements for gain, stability, noise, bandwidth, slew rate, etc.
 
-## 考虑的方案
-### 方案一：继续使用 OPA695，在反相输入端串联 10.6 Ω 电阻
-- 提出逻辑：反向输入端串联电阻可以降低增加输入阻抗，从而实现 50Ω 输入阻抗。
-- PCB 修改方便性：不需要额外修改 PCB，串联的新电阻可以和反相输入端的电阻合并成 83.8 Ω。
-- 成本：仅需要额外采购电阻。
-- 电路性能：
-  - 噪声、带宽、压摆率：运放未更换，因此无影响。
-  - 稳定性：差分放大器反相端串联电阻实际上改变了增益，则反馈电阻需要重新计算，否则很有可能影响稳定性。
-  - 增益：反向端串联电阻降低了增益。
-  - 共模抑制比（CMRR）：若只在反相输入端串联电阻，会导致电路不对称，反相端增益和同相端增益不一致，从而影响 CMRR。
+## Options Considered
+### Option One: Retain the OPA695 and Add a 10.6 Ω Series Resistor at the Inverting Input
+- Rationale: A series resistor at the inverting input can decrease/increase the input impedance to achieve a 50Ω input impedance.
+- Ease of PCB modification: No additional PCB changes are needed; the new series resistor can be combined with the inverting-input resistor into 83.8 Ω.
+- Cost: Only additional resistors need to be purchased.
+- Circuit performance:
+  - Noise, bandwidth, slew rate: Unaffected because the op amp is unchanged.
+  - Stability: Adding series resistance at the differential amplifier's inverting input actually changes the gain, requiring recalculation of the feedback resistor; otherwise stability is likely to be affected.
+  - Gain: Series resistance at the inverting input reduces gain.
+  - Common-mode rejection ratio (CMRR): Adding series resistance only at the inverting input makes the circuit asymmetric, with unequal inverting and non-inverting gains, affecting CMRR.
   
-### 方案二：更换为电压反馈运放
-- 提出逻辑：电压反馈运放可以在较大的范围内选择反馈电阻，规避了电流反馈运放在对应增益下需要选择特定电阻，导致输入阻抗没办法满足 50Ω 的限制。
-- PCB 修改方便性：需要更换运放，如果采用 SOIC-8 封装可以直接替换，如果采用其他封装则需要重新设计 PCB。
-- 成本：需要额外采购运放。
-- 运放对比：
+### Option Two: Replace with a Voltage-Feedback Op Amp
+- Rationale: Voltage-feedback op amps allow a wider range of feedback resistances, avoiding the limitation of current-feedback op amps that require a specific resistor for a given gain, preventing a 50Ω input impedance.
+- Ease of PCB modification: The op amp must be replaced. An SOIC-8 package allows direct replacement; other packages require PCB redesign.
+- Cost: Additional op amps must be purchased.
+- Op amp comparison:
 
-| 参数 | OPA695 | OPA690 | OPA820 | LMH6609 | LMH6624 | LMH6629 |
+| Parameter | OPA695 | OPA690 | OPA820 | LMH6609 | LMH6624 | LMH6629 |
 | --- | --- | --- | --- | --- | :--- | --- |
-| 拓扑结构 | 电流反馈 （CFB） | 电压反馈 （VFB） | 电压反馈 （VFB） | 电压反馈 （VFB） | 电压反馈 （VFB） | 电压反馈 （VFB） |
-| -3dB 带宽 | 1900MHz （G=1） | 535MHz （G=1） | 240MHz （G=2） | 900MHz （G=1） | 1.5 GHz | 900 MHz |
-| 压摆率 （SR） | 5000 V/µs | 1900 V/µs | 240 V/µs | 1400 V/µs | 350 V/µs | 1600 V/µs |
-| 输出电流 （Iout） | ±140 mA | ±215 mA | ±110 mA | ±90 mA | - | ±250 mA |
-| 电压噪声 （eₙ） | 2 nV/√Hz | 4.6 nV/√Hz | 2.5 nV/√Hz | 3.1 nV/√Hz | 0.92 nV/√Hz | 0.69 nV/√Hz |
-| 电源电压 | 5V 至 12V | 5V 至 12V | 5V 至 12V | 6.6V 至 12V | 5V 至 12V| 2.7V 至 5.5V |
-| 最小稳定增益 | 灵活 （CFB特性） | 单位增益稳定 | 单位增益稳定 | 单位增益稳定 | ≥ 10 | ≥ 4 或 10 |
-| 封装 | SOIC-8 | SOIC-8 | SOIC-8 | SOIC-8 | SOIC-8 | SOT-23 |
-| TI 官网价格 | $2.274 | $3.520 | $2.245 | $1.657 | $3.128 | $3.300 |
-| 立创商城价格[^1] | ￥11.29 | ￥39.64 | ￥20.14 | ￥34.06 | ￥41.54 | ￥32.02 |
+| Topology | Current feedback (CFB) | Voltage feedback (VFB) | Voltage feedback (VFB) | Voltage feedback (VFB) | Voltage feedback (VFB) | Voltage feedback (VFB) |
+| -3dB bandwidth | 1900MHz (G=1) | 535MHz (G=1) | 240MHz (G=2) | 900MHz (G=1) | 1.5 GHz | 900 MHz |
+| Slew rate (SR) | 5000 V/µs | 1900 V/µs | 240 V/µs | 1400 V/µs | 350 V/µs | 1600 V/µs |
+| Output current (Iout) | ±140 mA | ±215 mA | ±110 mA | ±90 mA | - | ±250 mA |
+| Voltage noise (eₙ) | 2 nV/√Hz | 4.6 nV/√Hz | 2.5 nV/√Hz | 3.1 nV/√Hz | 0.92 nV/√Hz | 0.69 nV/√Hz |
+| Supply voltage | 5V to 12V | 5V to 12V | 5V to 12V | 6.6V to 12V | 5V to 12V| 2.7V to 5.5V |
+| Minimum stable gain | Flexible (CFB characteristic) | Unity-gain stable | Unity-gain stable | Unity-gain stable | ≥ 10 | ≥ 4 or 10 |
+| Package | SOIC-8 | SOIC-8 | SOIC-8 | SOIC-8 | SOIC-8 | SOT-23 |
+| TI website price | $2.274 | $3.520 | $2.245 | $1.657 | $3.128 | $3.300 |
+| LCSC price[^1] | ￥11.29 | ￥39.64 | ￥20.14 | ￥34.06 | ￥41.54 | ￥32.02 |
 
-> 注：淘宝价格比上表中价格低，接近 TI 官网批量价格，但是不能排除是拆机片的可能性，需要谨慎。
+> Note: Taobao prices are lower than those listed above and close to TI's volume pricing, but the parts may be salvaged, so caution is required.
 
-[^1]: 立创商城价格数据为 2026-08-09。
+[^1]: LCSC prices as of 2026-08-09.
 
-- 电路性能：
-  - 噪声、带宽、压摆率：参照上表
-  - 稳定性：电压反馈运放稳定性较好，不需要额外计算反馈电阻
-  - 增益：电压反馈运放可以在较大范围内选择反馈电阻，规避了电流反馈运放在对应增益下需要选择特定电阻，导致输入阻抗没办法满足 50Ω 的限制。
+- Circuit performance:
+  - Noise, bandwidth, slew rate: Refer to the table above
+  - Stability: Voltage-feedback op amps have better stability and do not require additional feedback-resistor calculations
+  - Gain: Voltage-feedback op amps allow a wider range of feedback resistances, avoiding the limitation of current-feedback op amps that require a specific resistor for a given gain, preventing a 50Ω input impedance.
   
-### 方案三：在差分转单端前加电压跟随器
-- 提出逻辑：在差分转单端前加电压跟随器，50Ω 匹配由电压跟随器完成，差分放大器无需考虑输入阻抗。
-- PCB 修改方便性：需要额外修改 PCB，增加电压跟随器电路。
-- 成本：需要额外采购运放，需要重新设计打样 PCB。
-- 电路性能：
-  - 噪声：由于多加了一级运放，噪声会有一定程度的增加。
-  - 带宽：OPA695为电流反馈性运放，带宽不随增益改变，所以带宽瓶颈在前置的电压跟随器中，由于电压跟随器增益 G = 1，相比于方案二的 G = 6 V/V，所需带宽会降低，对运放选型更友好。
-  - 压摆率：没有更换输出级运放，压摆率不变。
-  - 稳定性：反馈只在每一级之内进行，对稳定性影响较小。
-  - 增益：电压跟随器增益为 1，差分放大器增益为 6，整体增益为 6 V/V。
-  - CMRR：由于组成电压跟随器的运放的失调电压大概率不同，导致 CMRR 下降。
+### Option Three: Add Voltage Followers Before the Differential-to-Single-Ended Stage
+- Rationale: Add voltage followers before the differential-to-single-ended stage, handling 50Ω matching at the followers so the differential amplifier need not account for input impedance.
+- Ease of PCB modification: Additional PCB changes are required to add the voltage-follower circuit.
+- Cost: Additional op amps must be purchased, and the PCB must be redesigned and fabricated.
+- Circuit performance:
+  - Noise: The extra op amp stage increases noise to some extent.
+  - Bandwidth: The OPA695 is a current-feedback op amp whose bandwidth does not change with gain, so the preceding voltage followers are the bandwidth bottleneck. Since their gain is G = 1 rather than G = 6 V/V in Option Two, the required bandwidth is lower, making op amp selection easier.
+  - Slew rate: Unchanged because the output-stage op amp is not replaced.
+  - Stability: Feedback remains local to each stage, so the effect on stability is small.
+  - Gain: The voltage followers have a gain of 1 and the differential amplifier a gain of 6, giving an overall gain of 6 V/V.
+  - CMRR: The voltage-follower op amps are likely to have different offset voltages, reducing CMRR.
 
-## 决策
-由于模拟板 MVP 已经打板，**暂时采用方案二，选用 LMH6609 进行评估，若实际效果不佳，则在模拟板 v1.0 改用方案三**
+## Decision
+Since the analog-board MVP has already been fabricated, **temporarily adopt Option Two and evaluate the LMH6609. If measured performance is unsatisfactory, switch to Option Three for analog-board v1.0.**
 
-## 后果
-### 正面影响
-- 可以不用修改 PCB，直接更换运放。
-- 能够完成 50Ω 输入阻抗要求。
-- 电路性能满足要求。
-- 电压反馈运放对寄生参数的要求较低，稳定性较好。
+## Consequences
+### Positive
+- Direct op amp replacement without PCB modification.
+- Meets the 50Ω input-impedance requirement.
+- Circuit performance meets requirements.
+- Voltage-feedback op amps impose less stringent parasitic requirements and have better stability.
 
-### 负面影响
-- 需要额外采购运放。
-- 高带宽的电压反馈运放成本较高。
+### Negative
+- Additional op amps must be purchased.
+- High-bandwidth voltage-feedback op amps are more expensive.
 
-### 替代方案放弃理由
-- 方案一：稳定性、CMRR、增益均受影响。
-- 方案三：需要额外修改 PCB，增加成本，且电压跟随器会额外引入噪声。
+### Reasons for Rejecting Alternatives
+- Option One: Affects stability, CMRR, and gain.
+- Option Three: Requires additional PCB changes and increases cost, while the voltage followers introduce extra noise.
 
-## 相关文档
-- [硬件架构文档](/docs/硬件架构文档.md)
-- [硬件设计文档（模拟板）](/docs/硬件设计文档/硬件设计文档(模拟板).md)
+## Related Documents
+- [Hardware Architecture Document](/docs/hardware-architecture.md)
+- [Hardware Design Document (Analog Board)](/docs/hardware-design/analog-board.md)
 
-> **2026-09-19 修订**：本决策在实测中被证伪（LMH6609 在 30MHz 衰减约 -9.5dB，反相端出现寄生极点，且 CFA 的 Rf 并非硬性约束，Rf 稍大只会影响带宽，稳定性反而增加）。
+> **2026-09-19 revision**: Measurements disproved this decision (the LMH6609 showed approximately -9.5dB attenuation at 30MHz, with a parasitic pole at the inverting input; the CFA's Rf is not a rigid constraint, and a slightly larger Rf affects only bandwidth while actually improving stability).

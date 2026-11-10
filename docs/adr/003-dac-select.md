@@ -7,120 +7,120 @@ To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/
 ------------------------------------------------------------------------->
 
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - Document framework -->
 
-# ADR-003: 主 DAC 选型 —— AD9747 vs AD9767
+# ADR-003: Main DAC Selection — AD9747 vs AD9767
 
-**状态**：已接受
-**决策者**：EERNINUO
-**日期**：2026-04-29
+**Status**: Accepted
+**Decision Maker**: EERNINUO
+**Date**: 2026-04-29
 
-## 背景与问题
-ArbWave30 需要一颗高速DAC实现最高 125MSPS 乃至更高采样率的波形输出。原方案采用 AD9767（14-bit, 125MSPS，双通道）。但在方案深化过程中发现两个问题：
-1. 引脚布局：AD9767 的时钟输入位于两组并行数据引脚之间，导致PCB上高速时钟线与数据线交叉，增加布局难度和串扰风险。
-2. 偏置产生：需要额外一颗16-bit DAC（DAC8562）来产生直流偏置电压（±2V范围），增加了BOM和PCB面积。
+## Context and Problem
+ArbWave30 requires a high-speed DAC for waveform output at sampling rates up to 125MSPS or higher. The original design used the AD9767 (14-bit, 125MSPS, dual-channel). However, detailed design revealed two issues:
+1. Pin layout: The AD9767 clock input is between two groups of parallel data pins, causing high-speed clock and data traces to cross on the PCB, increasing layout difficulty and crosstalk risk.
+2. Offset generation: An additional 16-bit DAC (DAC8562) is needed to generate the DC offset voltage (±2V range), increasing the BOM and PCB area.
 
-替代方案 AD9747（16-bit, 250MSPS，双通道）具有以下特点：
+The alternative AD9747 (16-bit, 250MSPS, dual-channel) has the following features:
 
-- 差分时钟输入引脚位于芯片侧面，与数据引脚分离，PCB布局更干净。
-- 内置两个10-bit辅助DAC，可用于产生偏置电压，可能省去独立偏置DAC。
-- 采用**数据时钟输出（DCO）**接口：DAC向FPGA输出一个同步时钟（DCO），FPGA用该时钟锁存数据。接口速率最高250MSPS。
+- Differential clock input pins on the side of the chip, separate from the data pins, for a cleaner PCB layout.
+- Two integrated 10-bit auxiliary DACs that can generate offset voltages, potentially eliminating the separate offset DAC.
+- A **data clock output (DCO)** interface: The DAC outputs a synchronous clock (DCO) to the FPGA, which uses it to latch data. The interface supports up to 250MSPS.
 
-但同时引入新挑战：
-- 高云GW2AR FPGA 的IO翻转速率极限约 1.3ns（约 380MHz），理论上支持250MSPS，但DCO接口的建立/保持时间要求（400ps/1200ps）非常严苛。
-- DCO在PCB上的传输延迟增加了FPGA时序约束难度。
-- 辅助DAC分辨率只有10-bit，低于原选的16-bit专用DAC，可能影响偏置精度。
-- 差分时钟输入需要AC耦合转换电路，不能直接连接标准LVDS时钟源（如CDCI6214），对布线提出了要求（如100Ω差分阻抗）
+However, it also introduces new challenges:
+- The Gowin GW2AR FPGA I/O switching limit is approximately 1.3ns (approximately 380MHz), theoretically supporting 250MSPS, but the DCO interface setup/hold requirements (400ps/1200ps) are very stringent.
+- DCO propagation delay on the PCB makes FPGA timing constraints more difficult.
+- The auxiliary DACs have only 10-bit resolution, below the originally selected 16-bit dedicated DAC, potentially affecting offset accuracy.
+- The differential clock input requires an AC-coupled conversion circuit and cannot connect directly to a standard LVDS clock source (such as CDCI6214), imposing routing requirements (such as 100Ω differential impedance).
 
-## 评估标准 （Evaluation Criteria）
-| 标准 | 权重 | 说明 |
+## Evaluation Criteria
+| Criterion | Weight | Description |
 |------|------|----------|
-| PCB布局友好度	| 高 | 时钟与数据引脚是否交叉，是否容易做等长 |
-| 信号完整性风险 | 高 |	时钟抖动、串扰、过孔换层需求 |
-| 采购与成本| 中 | 样片价格和供货（项目用量小，成本不敏感） |
-| 接口设计复杂度 | 中 | FPGA时序约束难度，是否需要额外逻辑 |
-| 性能扩展潜力 | 低 | 是否支持更高采样率以备未来升级 |
-| 集成度 / BOM简化 | 低 | 是否减少外部元件（如偏置DAC） |
+| PCB layout friendliness | High | Whether clock and data pins require crossing traces, and how easily trace lengths can be matched |
+| Signal-integrity risk | High | Clock jitter, crosstalk, and the need for layer transitions through vias |
+| Procurement and cost | Medium | Sample pricing and availability (small project quantities; not highly cost-sensitive) |
+| Interface design complexity | Medium | Difficulty of FPGA timing constraints and need for additional logic |
+| Performance expansion potential | Low | Support for higher sampling rates for future upgrades |
+| Integration / BOM simplification | Low | Reduction of external components (such as an offset DAC) |
 
-## 评估分析 （Analysis）
-### 1. PCB布局友好度
-- AD9767：时钟引脚被 DB13P1\~DB0P1 和 DB13P2\~DB0P2 两组总线夹在中间。等长布线时，数据线必须从两侧绕开时钟线，或者时钟线必须打孔换层避开数据总线。这增加了布局难度和信号完整性风险。
+## Analysis
+### 1. PCB Layout Friendliness
+- AD9767: The clock pins are between the DB13P1\~DB0P1 and DB13P2\~DB0P2 buses. Length-matched routing requires data traces to detour around the clock trace on either side, or the clock trace to change layers through vias to avoid the data buses. This increases layout difficulty and signal-integrity risk.
 
-- AD9747：时钟引脚位于器件侧面（第3、4脚），数据引脚集中在另两侧，自然分离。布局时可将时钟线直接引出，数据线独立走线，显著降低布线难度。
+- AD9747: The clock pins are on the side of the device (pins 3 and 4), while the data pins are grouped on two other sides, providing natural separation. The clock traces can exit directly and the data traces can be routed independently, significantly simplifying routing.
 
-结论：AD9747明显占优。
+Conclusion: AD9747 has a clear advantage.
 
-### 2. 信号完整性风险
-- AD9767：若采用时钟换层避开数据线，会遇到“参考平面切换”问题。四层板下处理不当会引入抖动和辐射。
+### 2. Signal-Integrity Risk
+- AD9767: Changing clock routing layers to avoid data traces introduces a reference-plane transition. If handled incorrectly on a four-layer board, this can introduce jitter and radiation.
 
-- AD9747：差分时钟输入本身抗共模干扰能力强。虽需要交流耦合转换电路，但此电路简单、成熟（ADI官方评估板使用）。时钟线可直接从侧面引出，无需换层，保持完整参考平面。
+- AD9747: The differential clock input inherently rejects common-mode interference well. Although an AC-coupled conversion circuit is required, it is simple and proven (used on ADI's official evaluation board). Clock traces can exit directly from the side without layer transitions, maintaining an uninterrupted reference plane.
 
-结论：AD9747占优。
+Conclusion: AD9747 is preferred.
 
-### 3. 采购与成本
-两者均为ADI量产器件，均可通过正规渠道购买（立创商城）。AD9767价格适中（约 65\~70￥）AD9747价格略高（约 90\~100￥），但节省了外部偏置DAC（DAC8562，约30￥）。净成本增加约20￥，可忽略，且若使用AD9767，为解决时钟问题，可能需要升级到六层板，价格高于四层板。
+### 3. Procurement and Cost
+Both are ADI production devices available through authorized channels (LCSC). The AD9767 is moderately priced (approximately CNY 65\~70), while the AD9747 is slightly more expensive (approximately CNY 90\~100), but eliminates the external offset DAC (DAC8562, approximately CNY 30). The net cost increase is approximately CNY 20 and is negligible. In addition, resolving the AD9767 clock-routing issue may require a six-layer board, which costs more than a four-layer board.
 
-结论：AD9747占优。
+Conclusion: AD9747 is preferred.
 
-### 4. 接口设计复杂度
-AD9767：标准并行接口，FPGA提供时钟和数据。时序简单，高云FPGA在125MHz下易满足。
+### 4. Interface Design Complexity
+AD9767: A standard parallel interface, with the FPGA providing clock and data. Timing is simple and readily achievable on a Gowin FPGA at 125MHz.
 
-AD9747：双端口模式需要FPGA接收DAC输出的DCO时钟，并使用该时钟锁存输出数据。建立/保持时间要求严苛（400ps/1200ps）。需要FPGA调整内部延迟。高云FPGA的IO延迟单元精度需要查证。
+AD9747: Dual-port mode requires the FPGA to receive the DAC's DCO clock and use it to latch output data. Setup/hold requirements are stringent (400ps/1200ps). The FPGA must adjust its internal delay. The resolution of the Gowin FPGA I/O delay elements needs verification.
 
-结论：AD9767占优（开发风险更低）。
+Conclusion: AD9767 is preferred (lower development risk).
 
-### 5. 性能扩展潜力
-AD9747最高支持250MSPS，而AD9767仅125MSPS。虽然当前项目只用125MSPS（或可升级到150\~200MSPS，动态性能更佳），但若未来升级任意波或提高正弦频，AD9747提供更大空间。
+### 5. Performance Expansion Potential
+The AD9747 supports up to 250MSPS, versus only 125MSPS for the AD9767. Although the current project uses only 125MSPS (potentially increasing to 150\~200MSPS for better dynamic performance), the AD9747 provides more headroom for future arbitrary-waveform upgrades or higher sine-wave frequencies.
 
-结论：AD9747占优。
+Conclusion: AD9747 is preferred.
 
-### 6. 集成度 / BOM简化
-AD9767：需要额外一个16-bit DAC（如DAC8562）来产生±2V偏置电压。增加BOM和PCB面积。
+### 6. Integration / BOM Simplification
+AD9767: Requires an additional 16-bit DAC (such as DAC8562) to generate a ±2V offset voltage, increasing the BOM and PCB area.
 
-AD9747：内置两个10-bit辅助DAC。虽然 10-bit分辨率（约4.88mV步进）无法满足偏置±10V范围下分辨率≤2mV的要求吗？但是可以采用**辅助DAC粗调+主DAC微调**的方式。若要求更高，仍可保留外部偏置DAC，辅助DAC可另作他用（如控制衰减继电器）。
+AD9747: Integrates two 10-bit auxiliary DACs. Does the 10-bit resolution (approximately 4.88mV steps) fail to meet the ≤2mV resolution requirement over a ±10V offset range? Even so, **coarse adjustment with the auxiliary DAC + fine adjustment with the main DAC** can be used. For stricter requirements, the external offset DAC can still be retained, and the auxiliary DACs used for other functions (such as controlling attenuation relays).
 
-结论：AD9747占优（可省去独立偏置DAC）。
+Conclusion: AD9747 is preferred (can eliminate the separate offset DAC).
 
-## 决策 （Decision）
-**选择 AD9747 作为 ArbWave30 的主 DAC。**
+## Decision
+**Select the AD9747 as the main DAC for ArbWave30.**
 
-尽管接口设计复杂度增加，但其在PCB布局、信号完整性、集成度方面的显著优势，以及对项目长期扩展性的支持，使其成为更优选择。接口复杂度可通过仔细的FPGA时序设计解决，且有官方参考设计可循。
+Despite the increased interface design complexity, its significant advantages in PCB layout, signal integrity, integration, and long-term project expandability make it the better choice. Careful FPGA timing design can address the interface complexity, and official reference designs are available.
 
-## 实施计划 （Implementation Plan）
-1. 时钟输入电路：按照AD9747数据手册Figure 29设计交流耦合电路：
-- CDCI6214 LVDS差分输出 → 0.1µF电容 → AD9747 CLKP/CLKN
-- 通过1kΩ和287Ω电阻从CVDD18分压产生~400mV共模电压
-- 靠近AD9747引脚处跨接100Ω差分端接电阻
+## Implementation Plan
+1. Clock input circuit: Design the AC-coupled circuit according to Figure 29 of the AD9747 datasheet:
+- CDCI6214 LVDS differential output → 0.1µF capacitors → AD9747 CLKP/CLKN
+- Use 1kΩ and 287Ω resistors to divide CVDD18 and generate a ~400mV common-mode voltage
+- Place a 100Ω differential termination resistor across the pair near the AD9747 pins
 
-2. FPGA接口：
-- 使用高云GW2AR的IO Bank中支持高速输出的引脚
-- 采用双端口模式，采样率暂定125MSPS（若时序富裕可提升至150~200M）
-- 接收DCO信号，并用PLL或IODELAY调整内部数据输出时钟相位，满足建立/保持时间
+2. FPGA interface:
+- Use pins supporting high-speed output in the Gowin GW2AR I/O banks
+- Use dual-port mode at an initial sampling rate of 125MSPS (increase to 150~200M if timing margin permits)
+- Receive DCO and use a PLL or IODELAY to adjust the internal data-output clock phase to meet setup/hold requirements
 
-3. 辅助DAC使用：
-- 辅助DAC1输出连接至偏置求和节点，产生±2V偏置
-- 辅助DAC2留作备用（控制衰减继电器或未来扩展）
-- 若偏置精度不足，保留外部DAC8562的焊盘作为可选件
+3. Auxiliary DAC usage:
+- Connect auxiliary DAC1 to the offset summing node to generate a ±2V offset
+- Reserve auxiliary DAC2 for future use (attenuation-relay control or expansion)
+- Retain optional external DAC8562 pads in case offset accuracy is insufficient
 
-3. PCB布局：
-- 模拟板采用4层板（叠层：TOP - GND - PWR - BOT）
-- 时钟差分走线100Ω阻抗，严格等长（误差≤5mil）
-- CDCI6214放置靠近AD9747，交流耦合电路紧贴DAC时钟引脚
+3. PCB layout:
+- Use a 4-layer analog board (stackup: TOP - GND - PWR - BOT)
+- Route the differential clock at 100Ω impedance with strict length matching (error ≤5mil)
+- Place CDCI6214 close to AD9747, with the AC-coupling circuit immediately adjacent to the DAC clock pins
 
-## 后果 （Consequences）
-### 正面影响
-- PCB局难度显著降低，信号完整性更有保障
-- 省去外部偏置DAC，BOM简化，PCB面积减小
-- 为未来提高采样率预留空间
+## Consequences
+### Positive
+- Significantly easier PCB layout and more assured signal integrity
+- Elimination of the external offset DAC simplifies the BOM and reduces PCB area
+- Headroom for future sampling-rate increases
 
-### 负面影响
-- FPGA时序设计复杂度增加，需要仔细约束和验证
-- 需要增加5个被动元件（2电容+4电阻）用于时钟转换
-- 若高云FPGA无法稳定工作在125MSPS以上，需降频或切换回AD9767
+### Negative
+- More complex FPGA timing design, requiring careful constraints and validation
+- Requires 5 additional passive components (2 capacitors + 4 resistors) for clock conversion
+- If the Gowin FPGA cannot operate reliably above 125MSPS, the sampling rate must be reduced or the design reverted to AD9767
 
-## 相关文档
-《技术规格书》第5.1节
-《硬件架构文档》第3.2节
-高云半导体GW2AR数据手册
-AD9767数据手册
-AD9747数据手册
+## Related Documents
+Technical Specification, Section 5.1
+Hardware Architecture Document, Section 3.2
+Gowin Semiconductor GW2AR Datasheet
+AD9767 Datasheet
+AD9747 Datasheet

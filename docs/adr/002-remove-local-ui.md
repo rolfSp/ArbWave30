@@ -6,64 +6,64 @@ This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 Inte
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 ------------------------------------------------------------------------->
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - Document framework -->
 
-# ADR-002: V1.0/V2.0 仅采用远程控制，放弃本地人机交互
+# ADR-002: Remote Control Only in V1.0/V2.0, with No Local User Interface
 
-## 状态
-已采纳 （2026-04-27）
+## Status
+Accepted (2026-04-27)
 
-## 背景
-ArbWave30 项目定位为一款 30MHz 任意波形发生器，核心价值在于：
-- 高信号质量（低 THD、低噪声、宽带宽）
-- 完整的 SCPI 命令集支持，便于自动化测试
+## Context
+ArbWave30 is positioned as a 30MHz arbitrary waveform generator whose core value is:
+- High signal quality (low THD, low noise, and wide bandwidth)
+- Full SCPI command-set support for automated testing
 
-在初始设计中，曾计划为 V1.0 配备本地操作设备（按键、旋转编码器、小尺寸 TFT 屏），以便在不连接 PC 时也能进行基本设置。然而，随着设计深入，出现以下问题：
+The initial design planned local controls for V1.0 (buttons, a rotary encoder, and a small TFT display) to allow basic settings without a PC connection. However, further design work revealed the following issues:
 
-1. **MCU 引脚紧张**：STM32F411CEU6 （48 脚） 在满足 USB、SPI （至 FPGA）、I2C （至EEPROM）、调试接口及电源管理后，所剩 GPIO 难以支持矩阵键盘 + 编码器 + SPI 屏幕，且强行增加会严重制约 PCB 布局。
-2. **本地显示价值有限**：1.8 寸小屏无法清晰显示波形、频率、幅值等参数；2.8 寸触摸屏虽可行，但会增加大量的 UI 代码调试工作，分散对模拟前端、FPGA DDS 和 SCPI 解释器等核心模块的精力。
-3. **核心应用场景为远程控制**：项目的典型使用场景大部分都有连接 PC 的条件，可通过 Python/PyVISA 等工具发送 SCPI 命令进行自动化测试或手动调试。大部分情况下本地操作并非刚需。
-4. **低成本迭代**：V1.0 应尽快完成硬件验证和基本功能，本地交互可作为 V3.0 的增强特性，届时可选用 Linux 核心板 + 大屏方案，体验更好且不拖累主进度。
+1. **Limited MCU pins**: After allocating pins on the STM32F411CEU6 (48 pins) to USB, SPI (to the FPGA), I2C (to the EEPROM), debugging, and power management, the remaining GPIOs cannot readily support a matrix keypad + encoder + SPI display. Forcing these additions would severely constrain the PCB layout.
+2. **Limited value of a local display**: A small 1.8-inch display cannot clearly show waveforms, frequency, amplitude, and other parameters. A 2.8-inch touchscreen is feasible, but would add substantial UI code debugging work, diverting effort from core modules such as the analog front end, FPGA DDS, and SCPI interpreter.
+3. **Remote control is the primary use case**: A PC connection is available in most typical use cases. Tools such as Python/PyVISA can send SCPI commands for automated testing or manual debugging. Local operation is not essential in most cases.
+4. **Low-cost iteration**: V1.0 should complete hardware validation and basic functionality as soon as possible. Local interaction can be a V3.0 enhancement, potentially using a Linux system-on-module and a large display for a better experience without delaying the main development schedule.
 
-## 决策
+## Decision
 
-**V1.0 和 V2.0 版本完全取消所有本地人机交互硬件（按键、编码器、TFT/LCD 屏幕），仅保留若干个状态 LED 指示状态）。**
+**Remove all local user-interface hardware (buttons, encoders, TFT/LCD displays) entirely from V1.0 and V2.0, retaining only a few status LEDs for indication.**
 
-控制板的核心职责限定为：
-- USB 通信（USBTMC 或 CDC 类），实现 SCPI 服务器
-- 通过 SPI 总线配置 FPGA 中的 DDS 参数（频率、相位、波形、幅度系数）
-- 通过 I2C 配置时钟发生器 CDCI6214
-- 通过板间连接器向模拟板提供电源和控制信号
+The control board's core responsibilities are limited to:
+- USB communication (USBTMC or CDC class), implementing an SCPI server
+- Configuring FPGA DDS parameters (frequency, phase, waveform, amplitude coefficient) over SPI
+- Configuring the CDCI6214 clock generator over I2C
+- Providing power and control signals to the analog board through the inter-board connectors
 
-所有参数设置、波形切换、输出控制均通过 SCPI 命令完成。用户可以使用任何支持 VISA 的软件（如 Python PyVISA、LabVIEW、Keysight Command Expert）或项目提供的简易 PyQt 上位机进行控制。
+All parameter settings, waveform selection, and output control are performed through SCPI commands. Users can control the instrument using any VISA-compatible software (such as Python PyVISA, LabVIEW, or Keysight Command Expert) or the project's simple PyQt PC application.
 
-## 后果
+## Consequences
 
-### 正面影响
+### Positive
 
-1. **降低硬件复杂度**：控制板 PCB 面积减小，布线更简洁，引脚分配宽松，EMC 风险降低。
-2. **缩短开发周期**：无需编写按键扫描、菜单逻辑、LCD 驱动、触摸校准等代码，固件可聚焦于 SCPI 解析和 SPI/I2C 通信。
-3. **提高可靠性**：减少机械元件（按键、编码器）和排线连接，硬件故障点减少。
+1. **Reduced hardware complexity**: Smaller control-board PCB area, simpler routing, more flexible pin allocation, and lower EMC risk.
+2. **Shorter development cycle**: No button-scanning, menu-logic, LCD-driver, or touch-calibration code is required. Firmware can focus on SCPI parsing and SPI/I2C communication.
+3. **Improved reliability**: Fewer mechanical components (buttons, encoders) and ribbon-cable connections reduce hardware failure points.
 
-### 负面影响
+### Negative
 
-1. **无法独立于 PC 使用**：用户必须有一台电脑并通过 USB 连接才能操作设备。但考虑到目标用户群体（实验室工程师、开发者）均有 PC，且 USB 线缆成本低，此限制可以接受。
-2. **调试时需要额外电脑**：开发过程中，每次更改参数都需要发送 SCPI 命令。这可通过在 PC 上运行一个简单的 PyQt 上位机或使用串口助手缓解，且本身就是自动化测试的一部分。
-3. **产品形态不完整**：从外观上看，设备（v1.0）只有一个 SMA 输出口、四个特殊功能SMA口、一个 USB 口和一个电源口，没有屏幕和按钮，可能会让初次接触的人感到困惑。但通过清晰的丝印标识和文档说明可以解决。
+1. **No standalone operation without a PC**: Users must have a computer connected over USB to operate the instrument. This limitation is acceptable because the target users (laboratory engineers and developers) have PCs and USB cables are inexpensive.
+2. **An additional computer is needed for debugging**: Every parameter change during development requires an SCPI command. A simple PyQt PC application or a serial-terminal utility can mitigate this, and it is already part of automated testing.
+3. **Incomplete product appearance**: The instrument (v1.0) has only one SMA output, four special-function SMA ports, one USB port, and one power input, with no display or buttons. This may confuse first-time users, but clear silkscreen labels and documentation can address it.
 
-## 替代方案
+## Alternatives
 
-| 方案 | 描述 | 为何放弃 |
+| Option | Description | Reason for Rejection |
 |------|------|----------|
-| 保留编码器+按键，不装屏幕 | 通过按键和编码器盲操作，依靠蜂鸣器或 LED 反馈 | 无法显示当前参数，实用性差，且仍然占用 GPIO |
-| 换用更大封装的 MCU（如 STM32F407VET6） | 使用 100 脚 MCU，引脚足够支持键盘和屏幕 | 增加 PCB 面积和成本，且 V1.0 核心目标并非本地交互，不值得为此更换平台 |
-| V1.0 就采用 Linux 核心板（如 RK3506） | 直接运行 Linux，驱动大屏触摸，实现完整本地 GUI | 技术栈跨度大，开发周期不可控，与当前“先保证硬件指标”的优先级冲突 |
+| Retain encoder + buttons without a display | Blind operation with buttons and an encoder, relying on buzzer or LED feedback | Cannot display current settings, has limited practical value, and still consumes GPIOs |
+| Use a larger-package MCU (such as STM32F407VET6) | A 100-pin MCU provides enough pins for a keypad and display | Increases PCB area and cost; local interaction is not a core V1.0 objective, so changing platforms is not worthwhile |
+| Use a Linux system-on-module (such as RK3506) from V1.0 | Run Linux directly and drive a large touchscreen for a full local GUI | Requires a substantially different technology stack and an unpredictable development schedule, conflicting with the current priority of meeting hardware specifications first |
 
-## 后续计划
+## Follow-up Plan
 
-- V1.0 / V2.0：维持纯远程控制设计，完成所有性能指标和 SCPI 命令集。
-- V3.0（规划）：评估是否增加本地 HMI。届时将采用独立的 Linux 核心板（如 RK3506）替换控制板上的MCU。本地显示与远程控制可并存。
+- V1.0 / V2.0: Retain the remote-only design and complete all performance targets and the SCPI command set.
+- V3.0 (planned): Evaluate adding a local HMI. A separate Linux system-on-module (such as RK3506) would replace the MCU on the control board. Local display and remote control can coexist.
 
-## 参考文献
+## References
 
-- 本项目技术规格书 `docs/项目技术规格书.md` 第 4.5 节（远程控制）
+- Project Technical Specification `docs/technical-specification.md`, Section 4.5 (Remote Control)

@@ -7,113 +7,113 @@ To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/
 ------------------------------------------------------------------------->
 
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - Document framework -->
 
-# ADR-001: 选用高云GW2AR-18 LQFP144作为主控FPGA
+# ADR-001: Selecting the Gowin GW2AR-18 LQFP144 as the Main FPGA
 
-## 状态
-已采纳 （2026-04-05）
+## Status
+Accepted (2026-04-05)
 
-## 背景
-ArbWave30项目需要一个FPGA来实现：
-- 48位DDS相位累加器（频率分辨率1μHz）
-- 波形存储器（存储正弦、方波、三角、锯齿、阶梯波表，未来扩展任意波）
-- 16位并行接口驱动AD9747 DAC（150MSPS）
-- SPI从机接口，接收来自STM32的配置命令
-我们需要选择一个封装便于手工焊接、逻辑资源足够、且成本合理的FPGA。
+## Context
+The ArbWave30 project requires an FPGA to implement:
+- A 48-bit DDS phase accumulator (1μHz frequency resolution)
+- Waveform memory (sine, square, triangle, sawtooth, and staircase lookup tables, with future arbitrary-waveform support)
+- A 16-bit parallel interface driving the AD9747 DAC (150MSPS)
+- An SPI slave interface receiving configuration commands from the STM32
+We need an FPGA with a hand-solderable package, sufficient logic resources, and a reasonable cost.
 
-## 决策驱动因素
-- 焊接可行性：项目为个人DIY，要求封装能用热风枪或手工烙铁焊接（拒绝BGA）。
-- 逻辑资源：至少需要约10k~15k LUTs（DDS+波形表+SPI从机+并口输出）。
-- 内存：波形表需要Block RAM或外部SDRAM。至少需要存储4种波形（每种1024点×14bit ≈ 7kB），未来任意波可能需要更大容量（>64kB）。
-- 成本：单颗FPGA价格应控制在70元人民币以内。
-- 开发工具：需要有良好的IDE支持（高云Gowin软件免费，且支持逻辑分析仪）。
+## Decision Drivers
+- Solderability: This is a personal DIY project; the package must be solderable with a hot-air gun or a hand soldering iron (no BGA).
+- Logic resources: At least approximately 10k~15k LUTs are required (DDS + waveform tables + SPI slave + parallel output).
+- Memory: Waveform tables require Block RAM or external SDRAM. At least 4 waveforms must be stored (1024 points × 14bit each ≈ 7kB); future arbitrary waveforms may require more capacity (>64kB).
+- Cost: The price per FPGA should be kept below CNY 70.
+- Development tools: Good IDE support is required (Gowin software is free and supports a logic analyzer).
 
-## 考虑的方案
-### 方案A：高云GW2A-18 LQFP144
-- 逻辑资源：18k LUTs
-- 封装：LQFP144（可手工焊）
-- 内部BSRAM：约828kbit（82kB）
-- 无集成SDRAM，需要外挂
-- 教程和社区支持较多，适合初学者
-- 单价：约45~55元 （淘宝/立创商城无现货）
+## Options Considered
+### Option A: Gowin GW2A-18 LQFP144
+- Logic resources: 18k LUTs
+- Package: LQFP144 (hand-solderable)
+- Internal BSRAM: Approximately 828kbit (82kB)
+- No integrated SDRAM; external memory is required
+- Relatively extensive tutorials and community support; suitable for beginners
+- Unit price: Approximately CNY 45~55 (not in stock on Taobao/LCSC)
 
-### 方案B：高云GW2AR-18 LQFP144
-- 逻辑资源：18k LUTs
-- 封装：LQFP144（可手工焊）
-- 内部BSRAM：约828kbit（82kB）
-- 集成PSRAM/SDRAM：64Mbit（8MB）
-- 教程和社区支持相对较少
-- 单价：约45~55元
+### Option B: Gowin GW2AR-18 LQFP144
+- Logic resources: 18k LUTs
+- Package: LQFP144 (hand-solderable)
+- Internal BSRAM: Approximately 828kbit (82kB)
+- Integrated PSRAM/SDRAM: 64Mbit (8MB)
+- Relatively fewer tutorials and less community support
+- Unit price: Approximately CNY 45~55
 
-### 方案C：高云GW2A-55 BGA
-- 逻辑资源：55k LUTs（过剩）
-- 封装：BGA（难以手工焊接，需要机器贴片）
-- 集成资源丰富，但PCB需要4层以上精密走线
-- 教程和社区支持较多，适合初学者
-- 单价：约45~55元
+### Option C: Gowin GW2A-55 BGA
+- Logic resources: 55k LUTs (excessive)
+- Package: BGA (difficult to hand-solder; requires machine assembly)
+- Abundant integrated resources, but the PCB requires 4 or more layers and precision routing
+- Relatively extensive tutorials and community support; suitable for beginners
+- Unit price: Approximately CNY 45~55
 
-### 方案D：Xilinx Artix-7 XC7A35T BGA
-- 逻辑资源：33k LUTs（过剩）
-- 封装：BGA（难以手工焊接）
-- 集成资源丰富，但价格较高，且开发环境复杂
-- 教程和社区支持最多，经典入门FPGA
-- 单价：>170元
+### Option D: Xilinx Artix-7 XC7A35T BGA
+- Logic resources: 33k LUTs (excessive)
+- Package: BGA (difficult to hand-solder)
+- Abundant integrated resources, but a higher price and a complex development environment
+- The most extensive tutorials and community support; a classic entry-level FPGA
+- Unit price: >CNY 170
 
-### 方案E：ZYNQ-7000系列 SoC
-- 逻辑资源：28k逻辑单元（过剩）
-- 封装：BGA（难以手工焊接）
-- 集成ARM处理器，开发复杂度大，成本高
-- 教程和社区支持较多，但主要面向嵌入式Linux开发
-- 单价：约200元（仅Soc价格，实际还需考虑目前居高临下的存储器价格）（存在矿板，价格可能更低，但可靠性未知）
-- **不适合当前项目需求，过于复杂且成本高昂，但未来可能适合更高级版本。**
+### Option E: ZYNQ-7000 Series SoC
+- Logic resources: 28k logic cells (excessive)
+- Package: BGA (difficult to hand-solder)
+- Integrated ARM processor; high development complexity and cost
+- Relatively extensive tutorials and community support, primarily focused on embedded Linux development
+- Unit price: Approximately CNY 200 (SoC only; currently high memory prices must also be considered) (ex-mining boards may be cheaper, but their reliability is unknown)
+- **Too complex and expensive for the current project requirements, but potentially suitable for a more advanced future version.**
 
-## 决策
-选择方案B：高云GW2AR-18 LQFP144
+## Decision
+Select Option B: Gowin GW2AR-18 LQFP144.
 
-### 理由
-1. LQFP144封装可直接用热风枪或刀头烙铁焊接，适合个人DIY，且PCB只需要4层即可布通。
-2. 集成64Mbit SDRAM是决定性优势：
-   - 无需外挂SDRAM芯片，节省PCB面积和布线复杂度。
-   - 8MB存储空间足以存放海量任意波波形表（未来V3.0计划支持≥1Mpts）。
-   - 内部SDRAM访问速度足以支撑125MSPS的波形读取（FPGA内置控制器）。
-3. 逻辑资源18k LUTs足够实现DDS核心（约6k）、并口DAC接口（约2k）、SPI从机（约1k）、未来数字调制（约3k），剩余余量约30%，不紧张。
-4. 成本仅比GW2A高约5元，但省去了外挂SDRAM和相关的布线成本，综合更优。
-5. 高云开发环境对GW2AR支持成熟，且提供免费的SDRAM控制器IP（或可自己编写）。
-6. 国产FPGA，供应链相对稳定且价格非常有竞争力。
+### Rationale
+1. The LQFP144 package can be soldered directly using a hot-air gun or a knife-tip soldering iron, making it suitable for personal DIY work; routing requires only a 4-layer PCB.
+2. The integrated 64Mbit SDRAM is the decisive advantage:
+   - No external SDRAM chip is needed, saving PCB area and reducing routing complexity.
+   - The 8MB storage capacity is sufficient for extensive arbitrary-waveform tables (the future V3.0 is planned to support ≥1Mpts).
+   - Internal SDRAM access is fast enough for waveform reads at 125MSPS (with a controller built into the FPGA).
+3. The 18k LUTs are sufficient for the DDS core (approximately 6k), parallel DAC interface (approximately 2k), SPI slave (approximately 1k), and future digital modulation (approximately 3k), leaving approximately 30% headroom without resource pressure.
+4. It costs only approximately CNY 5 more than the GW2A, while eliminating external SDRAM and its routing costs, making it the better overall choice.
+5. The Gowin development environment has mature GW2AR support and provides free SDRAM controller IP (or a controller can be written independently).
+6. This is a Chinese-made FPGA with a relatively stable supply chain and very competitive pricing.
 
-## 后果
-### 正面影响
-- 简化PCB设计：只需一层FPGA供电（1.0V、3.3V），无需外挂内存走线。
-- 未来扩展任意波无容量压力。
-- 焊接和调试难度降低。
-- 高云软件免费，便于开发调试。
+## Consequences
+### Positive
+- Simplified PCB design: Only one FPGA power-supply layer (1.0V, 3.3V) is needed, with no external-memory routing.
+- No capacity pressure for future arbitrary-waveform expansion.
+- Reduced soldering and debugging difficulty.
+- Free Gowin software facilitates development and debugging.
 
-### 负面影响
-- 成本比纯GW2A方案高5~15元左右（可接受）。
-- 集成SDRAM的型号引脚较少，die上部分资源用于SDRAM控制。
-- 如果未来想切换到其他品牌FPGA，此集成SDRAM特性可能不通用。
+### Negative
+- Approximately CNY 5~15 more expensive than a GW2A-only solution (acceptable).
+- The integrated-SDRAM variant has fewer pins, and some die resources are used for SDRAM control.
+- This integrated-SDRAM feature may not be available if switching to another FPGA vendor in the future.
 
-### 替代方案放弃理由
-**GW2A-18**：
-1. 若不需任意波或只做小容量，它更便宜。但考虑V3.0计划需要大容量任意波，外挂SDRAM会额外增加PCB面积和调试时间，且高速SDRAM布线容易出信号完整性问题。得不偿失。
-2. 淘宝/立创商城上没有GW2A-18 LQFP144现货。
+### Reasons for Rejecting Alternatives
+**GW2A-18**:
+1. Cheaper if arbitrary waveforms are unnecessary or only small storage capacity is needed. However, the V3.0 plan requires large arbitrary-waveform capacity. External SDRAM would increase PCB area and debugging time, and high-speed SDRAM routing is prone to signal-integrity problems. The trade-off is not worthwhile.
+2. The GW2A-18 LQFP144 is not in stock on Taobao/LCSC.
 
-**GW2A-55 BGA** ：
-- 无法手工焊接，且资源严重过剩，价格高，不适合原型阶段。
+**GW2A-55 BGA**:
+- Not hand-solderable, with significantly excessive resources and a high price; unsuitable for the prototype stage.
 
-**Xilinx Artix-7**：
-1. 虽然资源充足，但价格高，且开发环境复杂，不适合当前项目需求。
-2. BGA封装增加了焊接难度和PCB设计复杂度。
-3. Xilinx的开发工具（Vivado）对个人DIY用户不太友好，且需要较高的学习成本。
+**Xilinx Artix-7**:
+1. Although resources are sufficient, the high price and complex development environment do not suit the current project requirements.
+2. The BGA package increases soldering difficulty and PCB design complexity.
+3. Xilinx development tools (Vivado) are not particularly friendly to individual DIY users and have a steep learning curve.
   
-**ZYNQ-7000 SoC**：
-1. 过于复杂且成本高昂，开发难度大，不适合当前项目需求。
-2. 虽然集成ARM处理器提供了强大的处理能力，但对于当前的DDS和波形生成需求来说是过度设计，且增加了开发复杂度和成本。
-3. 未来可能适合更高级版本，但当前阶段不推荐。
+**ZYNQ-7000 SoC**:
+1. Too complex, expensive, and difficult to develop for the current project requirements.
+2. Although the integrated ARM processor provides substantial processing power, it is overkill for the current DDS and waveform-generation requirements and increases development complexity and cost.
+3. Potentially suitable for a more advanced future version, but not recommended at this stage.
 
-## 相关文档
-《技术规格书》第5.1节
-《硬件架构文档》第3.2节
-高云半导体GW2AR数据手册
-高云半导体SDRAM控制器IP文档
+## Related Documents
+Technical Specification, Section 5.1
+Hardware Architecture Document, Section 3.2
+Gowin Semiconductor GW2AR Datasheet
+Gowin Semiconductor SDRAM Controller IP Documentation

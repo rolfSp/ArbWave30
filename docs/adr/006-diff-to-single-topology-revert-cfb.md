@@ -6,71 +6,72 @@ This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 Inte
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.
 ------------------------------------------------------------------------->
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - Document framework -->
 
-# ADR-006: 差分转单端电路回归 CFB 拓扑（取代 ADR-005）
+# ADR-006: Returning to a CFB Topology for Differential-to-Single-Ended Conversion (Supersedes ADR-005)
 
-## 状态
-已采纳 (2026-09-26)，取代 ADR-005
+## Status
+Accepted (2026-09-26), supersedes ADR-005
 
-## 背景
-ADR-005 基于阻抗推导，选择 LMH6609（VFB）以规避 OPA695（CFB）反相输入端
-低阻抗导致的 50Ω 匹配困难。但在模拟板 MVP 实测中发现 VFB 方案在目标频段
-（直至 30MHz）无法满足平坦度：
+## Context
+Based on impedance calculations, ADR-005 selected the LMH6609 (VFB) to avoid the
+50Ω matching difficulty caused by the low inverting-input impedance of the OPA695 (CFB).
+However, analog-board MVP measurements showed that the VFB solution could not meet flatness requirements
+over the target frequency range (up to 30MHz):
 
-- 30MHz 处衰减约 -9.5dB（约为原始幅值的 1/3）
-- 10MHz 处衰减 -1.2dB，输出相对同相端相位滞后约 38°
-- 反相输入端（V-）与同相端（V+）相位差接近 90°，V- 峰峰值异常升高
-- 使用 10:1 探头复测结果一致，排除 50Ω 同轴直连加载造成的测量伪影
+- Approximately -9.5dB attenuation at 30MHz (approximately 1/3 of the original amplitude)
+- -1.2dB attenuation at 10MHz, with the output lagging the non-inverting input by approximately 38°
+- A phase difference approaching 90° between the inverting input (V-) and non-inverting input (V+), with an abnormally high V- peak-to-peak voltage
+- Repeating the measurements with a 10:1 probe produced the same results, ruling out measurement artifacts caused by loading from a direct 50Ω coaxial connection
 
-## 根因分析
-V- 节点输入阻抗高，配合较大的寄生电容，形成约 25MHz 的极点。该极点使 VFB 的虚短在高频失效：
+## Root-Cause Analysis
+The high input impedance at the V- node, together with substantial parasitic capacitance, creates a pole at approximately 25MHz. This pole invalidates the VFB virtual-short approximation at high frequencies:
 
-- 10MHz：幅度 -1.2dB、相位 -38°
-- 30MHz：滚降累积至 -9.5dB
+- 10MHz: Magnitude -1.2dB, phase -38°
+- 30MHz: Cumulative roll-off reaches -9.5dB
 
-结构原因：VFB 的反相输入端是高阻节点，对节点杂散电容/寄生电容敏感
-（参见 ADI MT-040）。
+Topological cause: The inverting input of a VFB amplifier is a high-impedance node, sensitive to stray/parasitic capacitance
+(see ADI MT-040).
 
-## 决策驱动因素（按优先级）
-1. 30MHz 以内的幅度平坦度与相位线性（本次新增，原 ADR 遗漏）
-2. 保持现有模拟板 MVP，避免重新打样
-3. 成本
-4. 50Ω 输入负载（7 阶椭圆滤波器的设计负载）
+## Decision Drivers (in Priority Order)
+1. Amplitude flatness and phase linearity up to 30MHz (newly added; omitted in the original ADR)
+2. Retaining the existing analog-board MVP without another fabrication run
+3. Cost
+4. A 50Ω input load (the design load of the 7th-order elliptic filter)
 
-## 考虑的方案
-### 方案一：回归 OPA695（CFB），Rf = 560Ω
-- 优点：CFB 反相端为低阻节点，受寄生参数影响小；CFB 带宽 BW ≈ 1/(2π·Rf·Cc) 与增益无关，可将增益与匹配解耦。
-- 缺点：Rf 比推荐值（约 460Ω）高约 100Ω → 带宽略降，热噪声与失调略增。
-- 实测：30MHz 衰减由 -9.5dB 改善至 -1.2dB。
+## Options Considered
+### Option One: Return to OPA695 (CFB), Rf = 560Ω
+- Advantages: The CFB inverting input is a low-impedance node with low sensitivity to parasitics; CFB bandwidth BW ≈ 1/(2π·Rf·Cc) is independent of gain, allowing gain and matching to be decoupled.
+- Disadvantages: Rf is approximately 100Ω higher than the recommended value (approximately 460Ω) → slightly lower bandwidth and slightly higher thermal noise and offset.
+- Measurements: Attenuation at 30MHz improved from -9.5dB to -1.2dB.
 
-### 方案二：保留 LMH6609（VFB） + 前级缓冲
-- 优点：加跟随器后 V- 节点源阻抗由数百 Ω 降至数 Ω，极点推高。
-- 缺点：需改板；额外运放引入噪声与失调。
-- 实测：未验证（方案一已满足要求）。
+### Option Two: Retain LMH6609 (VFB) + Preceding Buffer
+- Advantages: Adding a follower reduces the source impedance at V- from hundreds of Ω to a few Ω, moving the pole to a higher frequency.
+- Disadvantages: Requires PCB changes; the additional op amp introduces noise and offset.
+- Measurements: Not verified (Option One already meets requirements).
 
-### 方案三：OPA695（CFB） + 前级缓冲
-- 优点：输入电容小且对称，高频 CMRR 好，匹配与增益独立，能选到数据手册推荐的 Rf值。
-- 缺点：需改板、重新选型与验证，成本与周期高。
-- 结论：下一版 MVP 两通道分别采用方式一与方案三，评估性能。
+### Option Three: OPA695 (CFB) + Preceding Buffer
+- Advantages: Low and symmetric input capacitance, good high-frequency CMRR, independent matching and gain, and the ability to use the datasheet-recommended Rf value.
+- Disadvantages: Requires PCB changes, component reselection, and validation, with higher cost and a longer schedule.
+- Conclusion: Use Option One and Option Three on the two channels of the next MVP revision to evaluate performance.
 
-## 决策
-回归 OPA695（CFB），Rf = 560Ω。
+## Decision
+Return to OPA695 (CFB), Rf = 560Ω.
 
-理由：CFB 的反相输入端为低阻节点，受寄生参数小，从结构上消除了 VFB 方案的高频瓶颈；且 CFB 带宽与增益无关，使增益与输入匹配可以解耦。Rf 高于推荐值约 100Ω 是有意取舍——用约 20% 的带宽换取输入阻抗与滤波器输出匹配匹配，而 30MHz 仅占可用带宽的约 5%，余量充足。
+Rationale: The CFB inverting input is a low-impedance node with low parasitic sensitivity, eliminating the VFB solution's high-frequency bottleneck at the topology level. CFB bandwidth is also independent of gain, allowing gain and input matching to be decoupled. Setting Rf approximately 100Ω above the recommended value is a deliberate trade-off: approximately 20% of bandwidth is exchanged for matching the input impedance to the filter output. Since 30MHz is only approximately 5% of the available bandwidth, ample margin remains.
 
-## 后果
-### 正面影响
-- 30MHz 处衰减从 -9.5dB 改善至 -1.2dB，满足目标
-- 无需重新打样，MVP 周期不受影响
-- 明确了 VFB/CFB 在寄生电容敏感性上的取舍，为后续版本提供设计准则
+## Consequences
+### Positive
+- Attenuation at 30MHz improves from -9.5dB to -1.2dB, meeting the target
+- No new fabrication run is needed, leaving the MVP schedule unaffected
+- Clarifies the VFB/CFB trade-off in parasitic-capacitance sensitivity and provides design guidance for subsequent versions
 
-### 负面影响
-- Rf 偏离推荐值：带宽略降、热噪声与直流失调略增，需重新标定
-- 新增 CFB 使用约束：Rf 两端禁止并联补偿电容；控制反相端与输出端电容；
-  复核直流失调与输入匹配
+### Negative
+- Rf deviates from the recommended value: Slightly lower bandwidth and slightly higher thermal noise and DC offset require recalibration
+- Additional CFB constraints: No compensation capacitor may be placed across Rf; control capacitance at the inverting input and output;
+  recheck DC offset and input matching
 
-## 相关文档
-- ADR-005（已被本 ADR 取代）
-- /docs/硬件架构文档.md
-- /docs/硬件设计文档/硬件设计文档(模拟板).md
+## Related Documents
+- ADR-005 (superseded by this ADR)
+- /docs/hardware-architecture.md
+- /docs/hardware-design/analog-board.md

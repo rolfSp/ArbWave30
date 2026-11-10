@@ -1,260 +1,262 @@
 <div align="center">
 
-<!-- Assisted-by: DeepSeek - 文档框架 -->
+<!-- Assisted-by: DeepSeek - document framework -->
 
 # ArbWave30
-30MHz 任意波形发生器 | FPGA + 高速DAC | SCPI 可控 
+30MHz Arbitrary Waveform Generator | FPGA + High-Speed DAC | SCPI Control
 
 <p align="center">
   <a href="https://github.com/EERNINUO/ArbWave30" style="margin: 2px;">
-    <img alt="仓库状态" src="https://img.shields.io/badge/status-暂停更新-blue">
+    <img alt="Repository status" src="https://img.shields.io/badge/status-updates%20paused-blue">
   </a>
   <a href="https://github.com/EERNINUO/ArbWave30" style="margin: 2px;">
-    <img alt="GitHub 仓库星标" src="https://img.shields.io/github/stars/EERNINUO/ArbWave30">
+    <img alt="GitHub repository stars" src="https://img.shields.io/github/stars/EERNINUO/ArbWave30">
   </a>
   <a href="https://github.com/EERNINUO/ArbWave30" style="margin: 2px;">
-    <img alt="GitHub 仓库分支" src="https://img.shields.io/github/forks/EERNINUO/ArbWave30">
+    <img alt="GitHub repository forks" src="https://img.shields.io/github/forks/EERNINUO/ArbWave30">
   </a>
   <br/>
   <a href="https://raw.githubusercontent.com/EERNINUO/ArbWave30/main/LICENSE" style="margin: 2px;">
-    <img src="https://img.shields.io/badge/License-GPL--3.0-red" alt="许可证">
+    <img src="https://img.shields.io/badge/License-GPL--3.0-red" alt="License">
   </a>
   <a href="https://raw.githubusercontent.com/EERNINUO/ArbWave30/main/LICENSE" style="margin: 2px;">
-    <img src="https://img.shields.io/badge/License-CC--BY--SA--4.0-green" alt="许可证">
+    <img src="https://img.shields.io/badge/License-CC--BY--SA--4.0-green" alt="License">
   </a>
     <a href="https://raw.githubusercontent.com/EERNINUO/ArbWave30/main/LICENSE" style="margin: 2px;">
-    <img src="https://img.shields.io/badge/License-CERN--OHL--S--2.0-blue" alt="许可证">
+    <img src="https://img.shields.io/badge/License-CERN--OHL--S--2.0-blue" alt="License">
   </a>
   <!-- <a href="https://github.com/EERNINUO/ArbWave30/releases" style="margin: 2px;">
-    <img src="https://img.shields.io/github/v/release/EERNINUO/ArbWave30?color=blueviolet&include_prereleases" alt="发布版本">
+    <img src="https://img.shields.io/github/v/release/EERNINUO/ArbWave30?color=blueviolet&include_prereleases" alt="Release version">
   </a> -->
 </p>
 </div>
 
 ---
 
-> **⚠️ 注意**：你当前查看的是 **develop** 开发分支，内容可能不稳定。
-> 推荐使用稳定发布版本：[查看 Releases](https://github.com/EERNINUO/ArbWave30/tree/releases)
+> **⚠️ Warning**: You are viewing the **develop** development branch; its contents may be unstable.
+> For a stable version, use the [releases branch](https://github.com/EERNINUO/ArbWave30/tree/releases).
 
-## ⚠️ 更新状态
-作者正在参与《0854 不相信眼泪》，本项目暂停更新，承诺 2026.12.25 恢复更新并发布第一个 Release。（你问我为什么不是 20 号就更新？好不容易解放了我不得爽玩几天）
+## ⚠️ Update Status
+The author is currently taking part in "0854 Doesn't Believe in Tears", so updates to this project are paused. Updates are promised to resume on 2026.12.25, along with the first Release. (Why not on the 20th? After finally being free, surely I deserve a few days of fun!)
 
-## ✨ 特性
+## ✨ Features
 
-### 硬件指标（V1.0）
-- 波形：正弦、方波、三角波、噪声波、直流
-- 正弦波最高 **30MHz**，方波最高 **5MHz**
-- 电压范围（高阻）：20Vpp（DC\~10MHz），14Vpp（10\~20MHz），10Vpp（20\~30MHz）
-- 幅值分辨率：2mV（典型），偏移范围 ±10V
-- 总谐波失真（THD）：< -50dBc @10MHz 满幅（目标值）
-- 相位噪声：-100dBc/Hz @10kHz offset（30MHz 载波）（目标值，受限于测试条件，目前无法标定）
-- 输出阻抗：50Ω
-- 参考时钟：内部 TCXO（±1ppm）或外部 10MHz 输入
+### Hardware Specifications (V1.0)
+- Waveforms: sine, square, triangle, noise, DC
+- Sine waves up to **30MHz**, square waves up to **5MHz**
+- Voltage range (high impedance): 20Vpp (DC\~10MHz), 14Vpp (10\~20MHz), 10Vpp (20\~30MHz)
+- Amplitude resolution: 2mV (typical), offset range ±10V
+- Total harmonic distortion (THD): < -50dBc @10MHz, full amplitude (target)
+- Phase noise: -100dBc/Hz @10kHz offset (30MHz carrier) (target; cannot currently be characterized due to test equipment limitations)
+- Output impedance: 50Ω
+- Reference clock: internal TCXO (±1ppm) or external 10MHz input
 
-### 硬件指标（MVP）
-- 波形：正弦、方波、三角波、噪声波、直流
-- 正弦波最高 **30MHz**，方波最高 **5MHz**
-- 电压范围（高阻）：4Vpp（DC\~10MHz），2.8Vpp（10\~20MHz），2Vpp（20\~30MHz）
-- 幅值分辨率：2mV（典型），偏移范围 ±2V
-- 总谐波失真（THD）：< -50dBc @10MHz 满幅（目标值）
-- 相位噪声：-80dBc/Hz @10kHz offset（30MHz 载波）（目标值，受限于测试条件，目前无法标定）
-- 输出阻抗：50Ω
-- 参考时钟：内部 TCXO（±1ppm）
+### Hardware Specifications (MVP)
+- Waveforms: sine, square, triangle, noise, DC
+- Sine waves up to **30MHz**, square waves up to **5MHz**
+- Voltage range (high impedance): 4Vpp (DC\~10MHz), 2.8Vpp (10\~20MHz), 2Vpp (20\~30MHz)
+- Amplitude resolution: 2mV (typical), offset range ±2V
+- Total harmonic distortion (THD): < -50dBc @10MHz, full amplitude (target)
+- Phase noise: -80dBc/Hz @10kHz offset (30MHz carrier) (target; cannot currently be characterized due to test equipment limitations)
+- Output impedance: 50Ω
+- Reference clock: internal TCXO (±1ppm)
 
-### 控制与接口
-- USB 2.0（USB CDC 类），支持 SCPI-1999 命令集
-- SMA 输出，SMA 触发 I/O，SMA 外部时钟输入
-- 电源输入：24V DC，功耗 <24W
+### Control and Interfaces
+- USB 2.0 (USB CDC class), supporting the SCPI-1999 command set
+- SMA output, SMA trigger I/O, SMA external clock input
+- Power input: 24V DC, power consumption <24W
 
-### 软件与扩展路线
-- V1.0：单通道 + 基础波形 + 核心 SCPI
-- V2.0：双通道 + 调制 + 扫频
-- V3.0：Linux GUI + 任意波（16kpts）
+### Software and Expansion Roadmap
+- V1.0: single channel + basic waveforms + core SCPI commands
+- V2.0: dual channel + modulation + frequency sweep
+- V3.0: Linux GUI + arbitrary waveforms (16kpts)
 
 ---
 
-## 🚦 项目状态
+## 🚦 Project Status
 
-> **当前阶段：MVP 硬件、MCU/FPGA 核心程序验证完成，已能通过 SCPI 控制输出，正在进行模拟前端进一步调优**
+> **Current stage: validation of the MVP hardware and core MCU/FPGA code is complete. Output can now be controlled through SCPI; further analog front end tuning is underway.**
 
-### ✅ 已完成
-- [x] PCB 设计与打样（4层板，信号完整性设计）
-- [x] 模拟前端调试通过 
-- [x] DAC 上电参数配置正常（SPI 接口通信稳定）
-- [x] 正弦 DDS 核（IP 核实现，48位相位累加器）
-- [x] 方波/直流/三角波/噪声波生成
-- [x] 幅度控制模块
-- [x] 相位控制模块
-- [x] SPI Slave 通信接口与寄存器组
-- [x] 模拟板驱动库（MCU 端）
-- [x] SCPI 协议栈移植
-- [x] 7阶椭圆滤波器焊接调试
-- [x] 输出性能粗略标定（THD、SFDR）
-- [x] 软件幅度校准
+### ✅ Completed
+- [x] PCB design and prototype fabrication (4-layer board, signal-integrity design)
+- [x] Analog front end bring-up passed
+- [x] DAC power-up configuration working correctly (stable SPI communication)
+- [x] Sine-wave DDS core (IP core implementation, 48-bit phase accumulator)
+- [x] Square/DC/triangle/noise waveform generation
+- [x] Amplitude control module
+- [x] Phase control module
+- [x] SPI slave communication interface and register bank
+- [x] Analog board driver library (MCU side)
+- [x] SCPI protocol stack port
+- [x] 7th-order elliptic filter assembly and bring-up
+- [x] Preliminary output performance characterization (THD, SFDR)
+- [x] Software amplitude calibration
 
-### 🏗️ 开发中
-- [ ] 谐波性能优化
+### 🏗️ In Progress
+- [ ] Harmonic performance optimization
 
-### 📋 待办（MVP 之后）
-- [ ] 滤波器性能优化（重构滤波器，调整群延时，减少快速边沿的过冲/振铃）
-- [ ] 分板思路调整（电源板、模拟板、控制板）
-- [ ] 模拟板完整版设计（加入 硬件幅度控制、直流偏置、外部触发、外部时钟输入）
-- [ ] 输出性能精确标定（需要专业频谱仪，目前无法进行）
-- [ ] 上位机控制软件
+### 📋 To Do (After MVP)
+- [ ] Filter performance optimization (reconstruction filter; adjust group delay to reduce overshoot/ringing on fast edges)
+- [ ] Revise the board partitioning (power board, analog board, control board)
+- [ ] Full analog board design (add hardware amplitude control, DC offset, external trigger, external clock input)
+- [ ] Precise output performance characterization (requires a professional spectrum analyzer; currently unavailable)
+- [ ] Host control software
 
-### 📸 当前进展
+### 📸 Current Progress
 
-**正弦波输出（SDS824X HD 示波器实测）：**
+**Sine-wave output (measured with an SDS824X HD oscilloscope):**
 
-**正弦波满幅输出波形：**
-![10MHz正弦波满幅输出波形](docs/pic/10MHz正弦波满幅输出波形.png)
-![30MHz正弦波满幅输出波形](docs/pic/30MHz正弦波满幅输出波形.png)
+**Full-amplitude sine-wave output:**
+![10MHz full-amplitude sine-wave output](docs/pic/10mhz-sine-full-amplitude-output.png)
+![30MHz full-amplitude sine-wave output](docs/pic/30mhz-sine-full-amplitude-output.png)
 
-**方波满幅输出波形：**
-![5MHz方波满幅输出波形](docs/pic/5MHz方波满幅输出波形.png)
-> 当前版本方波有约 13.5% 的过冲，为滤波器群延时特性所致，后续将通过优化通道设计解决，详见[重构滤波器调试笔记](docs/设计笔记/重构滤波器调试笔记.md)。
+**Full-amplitude square-wave output:**
+![5MHz full-amplitude square-wave output](docs/pic/5mhz-square-full-amplitude-output.png)
+> The current version has approximately 13.5% square-wave overshoot due to the filter's group-delay characteristics. This will be addressed by optimizing the channel design; see the [Reconstruction Filter Debugging Notes](docs/design-notes/reconstruction-filter-debugging.md).
 
-**10MHz正弦波FFT结果：**
+**10MHz sine-wave FFT results:**
 
-![10MHz正弦波FFT结果](docs/pic/10MHz正弦波FFT结果.png)
+![10MHz sine-wave FFT results](docs/pic/10mhz-sine-fft.png)
 
-经上图数据可计算出[^1]：
-  THD ≈ -60.2 dBc @10MHz，
+The measurements above yield[^1]:
+  THD ≈ -60.2 dBc @10MHz,
   SFDR[^2] ≈ 63.26 dBc @10MHz
 
-[^1]: 由于示波器自身产生的谐波不可忽略，该值仅供参考，实际值需频谱分析仪复测。
+[^1]: Harmonics introduced by the oscilloscope itself are not negligible, so these values are for reference only. Actual performance must be remeasured with a spectrum analyzer.
 
-[^2]:SFDR 分为两种定义：1、含谐波；2、不含谐波。由于表中没有非谐波分量，故采用第一种定义。
+[^2]: There are two definitions of SFDR: 1, including harmonics; 2, excluding harmonics. Since the table contains no nonharmonic components, the first definition is used.
 
 ---
 
-## ⚠️ 已知问题
-- 当前版本方波有约 13.5% 的过冲，为滤波器群延时特性所致，后续将通过优化滤波器设计解决。
-- 当前版本在运行一段时间后，在输出 25 MHz 以上正弦波时，有概率出现固定大小/方向的偏置抖动，怀疑是 FPGA 发热导致时序漂移，后续将通过优化 FPGA 时序约束和增加散热解决。
-- 当前分板设计会导致成品过长过细（约 225mm x 90mm），后续将调整分板方案，分为电源板、模拟板、控制板。
+## ⚠️ Known Issues
+- The current version has approximately 13.5% square-wave overshoot due to the filter's group-delay characteristics. This will be addressed by optimizing the filter design.
+- After running for some time, the current version may exhibit offset jumps of a fixed magnitude and direction when outputting sine waves above 25 MHz. FPGA heating is suspected to cause timing drift; planned remedies include refining FPGA timing constraints and improving cooling.
+- The current board partitioning makes the assembled unit too long and narrow (approximately 225mm x 90mm). A future revision will use separate power, analog, and control boards.
 
-## 🧱 仓库结构
+## 🧱 Repository Structure
 ```text
-ArbWave30/  
-├── docs/ # 设计文档  
-│    ├── pic/ # 文档图片  
-│    ├── adr/ # 决策记录  
-│    ├── 硬件设计文档/ # 硬件设计文档  
-│    ├── 设计笔记/ # 设计笔记
-│    ├── 用户手册/ # 用户手册  
-│    └──  LICENSE # CC BY-SA 4.0  
-├── hardware/ # 原理图、PCB源文件   
-│    ├── analog_board/ # 模拟板 PCB设计  
-│    ├── control_board/ # 控制板 PCB设计  
-│    └── LICENSE # CERN-OHL-S-2.0   
-├── firmware/ 
-│    ├── fpga/ # FPGA 设计源代码（Verilog）  
-│    │    ├── Application/ # 项目代码   
-│    │    └── FPGA_Test_Hardware/ # FPGA 硬件测试代码   
-│    │         ├── FPGA_Clodck_Test/ # 时钟测试代码   
-│    │         └── FPGA_Hardware_Test/ # FPGA 硬件测试代码   
-│    ├── mcu/ # MCU 固件源代码（C/C++）   
-│    │    ├── Application/ # 项目代码   
-│    │    ├── MCU_Test_Hardware/ # MCU 硬件测试代码   
-│    │    │    └── min_system_test/ # MCU 最小系统测试代码   
-│    │    └── SCPI_Test/ # SCPI-parser 移植测试工程   
-│    └── Clock_Generator_Config/ # 时钟发生器配置     
-├── simulink/ # LTspice 仿真文件  
-├── datasheets/ # 组件数据手册，参考设计  
-├── scripts/ # 自动化测试脚本（PyVISA）  
-│    ├── test_filter/ # 滤波器测试脚本  
-│    └── test_diff_to_single # 差分转单端输出测试脚本   
-├── LICENSE # GPL-3.0  
-└── README.md  
+ArbWave30/
+├── docs/ # Design documentation
+│    ├── pic/ # Documentation images
+│    ├── adr/ # Architecture decision records
+│    ├── diagrams/ # Editable block diagrams
+│    ├── hardware-design/ # Hardware design documents
+│    ├── design-notes/ # Design notes
+│    ├── debug-notes/ # Debugging notes
+│    ├── user-manual/ # User manuals
+│    └── LICENSE # CC BY-SA 4.0
+├── hardware/ # Schematic and PCB source files
+│    ├── analog_board/ # Analog board PCB design
+│    ├── control_board/ # Control board PCB design
+│    └── LICENSE # CERN-OHL-S-2.0
+├── firmware/
+│    ├── FPGA/ # FPGA design source code (Verilog)
+│    │    ├── Application/ # Application code
+│    │    └── FPGA_Test_Hardware/ # FPGA hardware test code
+│    │         ├── FPGA_Clodck_Test/ # Clock test code
+│    │         └── FPGA_Hardware_Test/ # FPGA hardware test code
+│    ├── MCU/ # MCU firmware source code (C/C++)
+│    │    ├── Application/ # Application code
+│    │    ├── MCU_Test_Hardware/ # MCU hardware test code
+│    │    │    └── min_system_test/ # MCU minimum-system test code
+│    │    └── SCPI_Test/ # SCPI-parser port test project
+│    └── Clock_Generator_Config/ # Clock generator configuration
+├── simulink/ # LTspice simulation files
+├── datasheets/ # Component datasheets and reference designs
+├── scripts/ # Automated test scripts (PyVISA)
+│    ├── test_filter/ # Filter test scripts
+│    └── test_diff_to_single # Differential-to-single-ended output test scripts
+├── LICENSE # GPL-3.0
+└── README.md
 ```
 ---
 
-## 🚀 快速开始
+## 🚀 Getting Started
 
-> 项目处于 **最小可行产品（MVP）验证阶段，未来会出现破坏兼容性的变更**，正在进行 MVP 版本软硬件联调，待 MVP 验证完成后，将提供：
-> - 打样 PCB 的 Gerber 文件及 BOM
-> - FPGA 比特流烧录方法（通过 JTAG 加载）
-> - 固件编译与升级步骤
+> The project is in the **minimum viable product (MVP) validation stage; future changes may break compatibility**. MVP hardware/software integration testing is underway. Once validation is complete, the following will be provided:
+> - PCB Gerber files and BOM for prototype fabrication
+> - FPGA bitstream programming instructions (loading through JTAG)
+> - Firmware build and update instructions
 
-当前你可以浏览 `docs/` 中的设计文档，了解详细的技术规格和设计思路；
-或查看 `hardware/` 中的原理图和 PCB 设计文件与 `firmware/` 中的代码框架，了解硬件与软件的构成，并提出您的宝贵意见。
+Browse the design documents in `docs/` for detailed technical specifications and design rationale.
+You can also explore the schematics and PCB files in `hardware/` and the code framework in `firmware/` to understand the hardware and software architecture. Feedback is welcome.
 
 ---
 
-## 📡 SCPI 命令示例 
+## 📡 SCPI Command Example
 
 ```python
 import pyvisa
 
-# 1. 指定纯 Python 后端（无需安装 NI-VISA 驱动）
+# 1. Select the pure-Python backend (no NI-VISA driver required).
 rm = pyvisa.ResourceManager('@py')
 
-# 2. 列出所有资源，找到你的 COM 口（通常是 'ASRL3::INSTR' 类似格式）
+# 2. List all resources to find your COM port (typically in a format such as 'ASRL3::INSTR').
 # print(rm.list_resources())
 
-# 3. 打开串口资源，并配置终止符
-inst = rm.open_resource('ASRL3::INSTR')  # 请替换为实际的 ASRL 端口号
-inst.baud_rate = 115200        # 串口波特率，对于 USB CDC 类设备并不重要
-inst.read_termination = '\n'   # 非常重要：库默认是 '\n'，但最好显式声明
-inst.write_termination = '\n'  # 发送时自动追加换行符
+# 3. Open the serial resource and configure terminators.
+inst = rm.open_resource('ASRL3::INSTR')  # Replace with the actual ASRL port number.
+inst.baud_rate = 115200        # Serial baud rate; not important for USB CDC devices.
+inst.read_termination = '\n'   # Important: declare explicitly even though '\n' is the default.
+inst.write_termination = '\n'  # Automatically append a newline when sending.
 
-# 4. 现在你可以像用 USBTMC 仪器一样使用 query
+# 4. Use query as with a USBTMC instrument.
 print(inst.query('*IDN?'))
 inst.write('SOUR:FREQ 1000')
 inst.write('SOUR:STAT ON')
 
-# 5. 查询
+# 5. Query.
 freq = inst.query('SOUR:FREQ?')
 print(f"Freq: {freq}")
 
 inst.close()
 ```
 
-完整命令集参见 [docs/SCPI_reference.md](</docs/用户手册/SCPI 参考手册.md>)。
+See the [SCPI Reference](docs/user-manual/scpi-reference.md) for the complete command set.
 
-## 🧪 自动化测试
-测试脚本位于 `scripts/`（持续更新中），使用 PyVISA 与设备通信。你可以运行对应的脚本进行自动化测试，或者根据你的需求，参考这些脚本自行编写测试用例。
+## 🧪 Automated Testing
+Test scripts are located in `scripts/` (under active development) and use PyVISA to communicate with the device. Run the relevant scripts for automated testing, or use them as a basis for your own test cases.
 
-## 📄 文档
-设计文档、测试报告和用户手册位于 `docs/`，持续更新中。
+## 📄 Documentation
+Design documents, test reports, and user manuals are located in `docs/` and are continually updated.
 
-## 📅 版本路线图 
-| 阶段 | 功能 | 描述 |
+## 📅 Version Roadmap
+| Stage | Function | Description |
 |------|------|------|
-| V1.0 | 单通道，基础波形（正弦、方波、三角、噪声、DC）| 支持频率、幅值、偏置、相位连续可调；支持SCPI命令（少量核心指令）|
-| V2.0 | 双通道 | 增加第二路输出，支持频率/相位同步，相位差可调 |
-|      | AM调制 |内/外部调制源，调制深度0\~100% |
-| V3.0 | 嵌入式GUI | 基于Linux + LVGL，通过LCD触摸屏直接控制
-|      | 任意波 | 支持用户自定义波形表，存储深度≥16kpts |
+| V1.0 | Single channel, basic waveforms (sine, square, triangle, noise, DC) | Continuously adjustable frequency, amplitude, offset, and phase; SCPI support (a small core command set) |
+| V2.0 | Dual channel | Add a second output with frequency/phase synchronization and adjustable phase difference |
+| | AM modulation | Internal/external modulation source, modulation depth 0\~100% |
+| V3.0 | Embedded GUI | Linux + LVGL, direct control through an LCD touchscreen |
+| | Arbitrary waveforms | User-defined waveform tables, storage depth ≥16kpts |
 
-## 📜 许可证
+## 📜 Licensing
 Copyright © 2026 EERNINUO
 
-本项目采用**多许可证策略**，不同部分适用不同许可证：
+This project uses **multiple licenses**, with different licenses applying to different components:
 
-| 组成部分 | 许可证 |
+| Component | License |
 |----------|--------|
-| 固件 （MCU/FPGA 代码） | [GNU General Public License v3.0](LICENSE) |
-| 硬件设计文件 （原理图、PCB、BOM） | [CERN Open Hardware Licence Version 2 - Strongly Reciprocal](hardware/LICENSE) |
-| 文档、图片、README | [Creative Commons Attribution-ShareAlike 4.0 International](docs/LICENSE) |
+| Firmware (MCU/FPGA code) | [GNU General Public License v3.0](LICENSE) |
+| Hardware design files (schematics, PCB, BOM) | [CERN Open Hardware Licence Version 2 - Strongly Reciprocal](hardware/LICENSE) |
+| Documentation, images, README | [Creative Commons Attribution-ShareAlike 4.0 International](docs/LICENSE) |
 
-这意味着：
-- 你可以自由使用、修改、分享固件代码，但任何衍生代码也必须以 GPL-3.0 开源。
-- 你可以基于硬件设计文件制作、分发物理设备，但必须同时开源你对设计文件的修改，并保留署名。
-- 你可以复制和修改文档，但必须同样以 CC BY-SA 4.0 分享，并注明原作者。
+This means:
+- You may use, modify, and share the firmware code, but derivative code must also be released as open source under GPL-3.0.
+- You may manufacture and distribute physical devices based on the hardware design files, but you must also publish your modifications to the design files and retain attribution.
+- You may copy and modify the documentation, but must share it under CC BY-SA 4.0 and credit the original author.
 
-**商标声明**：`ArbWave30` 名称及标志未经授权不得用于商业产品。
+**Trademark notice**: the `ArbWave30` name and logo may not be used for commercial products without authorization.
 
-## 🤖 AI 辅助声明
+## 🤖 AI Assistance Disclosure
 
-本项目文档框架由 GitHub Copilot / DeepSeek 辅助生成。
-作者已逐一审查并测试，但如有任何问题欢迎提交 Issue。
+The documentation framework for this project was created with assistance from GitHub Copilot / DeepSeek.
+The author has reviewed and tested each part, but please open an issue if you encounter any problems.
 
-## ⚠️ 免责声明
-注意：本项目为个人学习与开源作品，不保证商业级可靠性。使用前请仔细阅读免责声明。
+## ⚠️ Disclaimer
+This is a personal learning and open-source project; commercial-grade reliability is not guaranteed. Please read the disclaimer carefully before use.
 
-## 📫 联系方式
-项目主页: https://github.com/EERNINUO/ArbWave30
+## 📫 Contact
+Project homepage: https://github.com/EERNINUO/ArbWave30
 
 ## ⭐ Star History
-如果您觉得这个项目有帮助，请给一个 Star ⭐，谢谢！
+If you find this project helpful, please give it a star ⭐. Thank you!
